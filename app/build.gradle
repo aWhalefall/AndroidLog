@@ -24,10 +24,10 @@ android {
     buildFeatures {
         viewBinding true
     }
-    
+
       kotlinOptions {
         jvmTarget = "1.8"
-   
+
 
         freeCompilerArgs += [
                 "-P",
@@ -51,7 +51,7 @@ android {
     buildFeatures {
         compose true
     }
-  
+
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
