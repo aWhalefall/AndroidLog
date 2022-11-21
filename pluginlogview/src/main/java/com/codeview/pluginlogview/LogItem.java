@@ -1,4 +1,4 @@
-package com.kuaidao.loggview;
+package com.codeview.pluginlogview;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -89,6 +89,9 @@ public class LogItem implements Parcelable {
     boolean isFiltered(String filter) {
         return SUPPORTED_FILTERS.indexOf(priority) < SUPPORTED_FILTERS.indexOf(filter);
     }
+    boolean isFilter(String filter) {
+        return priority.equals(filter);
+    }
 
     @Override
     public int describeContents() {
@@ -117,7 +120,7 @@ public class LogItem implements Parcelable {
         this.origin = in.readString();
     }
 
-    public static final Parcelable.Creator<LogItem> CREATOR = new Parcelable.Creator<LogItem>() {
+    public static final Creator<LogItem> CREATOR = new Creator<LogItem>() {
         @Override
         public LogItem createFromParcel(Parcel source) {
             return new LogItem(source);

@@ -14,3 +14,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "LoggView"
 include ':app'
+include ':pluginlogview'
+include ':libcrash'

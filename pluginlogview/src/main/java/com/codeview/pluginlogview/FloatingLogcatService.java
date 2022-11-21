@@ -1,4 +1,4 @@
-package com.kuaidao.loggview;
+package com.codeview.pluginlogview;
 
 
 import android.annotation.SuppressLint;
@@ -13,7 +13,6 @@ import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -24,8 +23,8 @@ import android.widget.ListView;
 
 import androidx.annotation.Nullable;
 
-import com.kuaidao.loggview.databinding.LogcatViewerActivityLogcatBinding;
 
+import  com.codeview.pluginlogview.databinding.LogcatViewerActivityLogcatBinding;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,6 +38,8 @@ import java.util.regex.Pattern;
 
 public class FloatingLogcatService extends Service {
 
+    private String mFilterTag;
+
     public static void launch(Context context, List<Pattern> excludeList) {
         ArrayList<String> list = new ArrayList<>();
         for (Pattern pattern : excludeList) {
@@ -50,7 +51,7 @@ public class FloatingLogcatService extends Service {
 
     @Nullable
     private LogcatViewerActivityLogcatBinding mBinding = null;
-    private final LogcatAdapter mAdapter = new LogcatAdapter();
+    private  LogcatAdapter mAdapter;
     private volatile boolean mReading = false;
     private final List<Pattern> mExcludeList = new ArrayList<>();
     private Context mThemedContext;
@@ -67,6 +68,7 @@ public class FloatingLogcatService extends Service {
         mThemedContext = new ContextThemeWrapper(
                 this, com.google.android.material.R.style.Theme_MaterialComponents_DayNight
         );
+        mAdapter =new LogcatAdapter(this.mThemedContext);
     }
 
     @Override
@@ -75,7 +77,7 @@ public class FloatingLogcatService extends Service {
             return super.onStartCommand(intent, flags, startId);
         }
 
-        mBinding = LogcatViewerActivityLogcatBinding.inflate(LayoutInflater.from(mThemedContext));
+        mBinding = LogcatViewerActivityLogcatBinding.bind(View.inflate(this,R.layout.logcat_viewer_activity_logcat,null));
         TypedValue typedValue = new TypedValue();
         if (mBinding != null && mThemedContext.getTheme().resolveAttribute(
                 android.R.attr.windowBackground, typedValue, true)) {
@@ -98,7 +100,7 @@ public class FloatingLogcatService extends Service {
     public void onDestroy() {
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         if (wm != null && mBinding != null) {
-            wm.removeView(mBinding.root);
+            wm.removeView(mBinding.getRoot());
         }
 
         stopReadLogcat();
@@ -140,7 +142,7 @@ public class FloatingLogcatService extends Service {
                 params.height = (int) (height * .8);
             }
 
-            wm.addView(mBinding.root, params);
+            wm.addView(mBinding.getRoot(), params);
         }
 
         mBinding.toolbar.getLayoutParams().height = getResources().getDimensionPixelSize(
@@ -156,6 +158,7 @@ public class FloatingLogcatService extends Service {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String filter = getResources().getStringArray(R.array.logcat_viewer_logcat_spinner)[position];
+                mFilterTag = filter.substring(0,1);
                 mAdapter.getFilter().filter(filter);
             }
 
@@ -169,6 +172,7 @@ public class FloatingLogcatService extends Service {
         mBinding.list.setStackFromBottom(true);
         mBinding.list.setAdapter(mAdapter);
 
+        mBinding.fraClear.setOnClickListener(v -> mAdapter.clear());
         mBinding.toolbar.setOnTouchListener(new View.OnTouchListener() {
 
             boolean mIntercepted = false;
@@ -206,7 +210,7 @@ public class FloatingLogcatService extends Service {
                                 params.x += deltaX;
                                 params.y += deltaY;
                                 mIntercepted = true;
-                                wm.updateViewLayout(mBinding.root, params);
+                                wm.updateViewLayout(mBinding.getRoot(), params);
                             } else {
                                 mIntercepted = false;
                             }
@@ -260,7 +264,11 @@ public class FloatingLogcatService extends Service {
                         try {
                             final LogItem item = new LogItem(line);
                             latestTime = item.time;
-                            if (mBinding != null) mBinding.list.post(() -> mAdapter.append(item));
+                            if (mBinding != null) mBinding.list.post(() ->{
+                                if(item.isFilter(mFilterTag)) {
+                                    mAdapter.append(item);
+                                }
+                            });
                         } catch (ParseException | NumberFormatException | IllegalStateException e) {
                             e.printStackTrace();
                         }

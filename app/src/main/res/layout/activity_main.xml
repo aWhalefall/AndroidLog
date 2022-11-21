@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/btnD"
+        android:layout_width="match_parent"
+        android:layout_height="47dp"
+        android:text="" />
+
+    <Button
+        android:id="@+id/btnE"
+        android:layout_width="match_parent"
+        android:layout_height="47dp"
+        android:text="日志E" />
+
+    <Button
+        android:id="@+id/window"
+        android:layout_width="match_parent"
+        android:layout_height="47dp"
+        android:text="window" />
+
+
+    <TextView
+        android:lines="1"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:autoSizeMaxTextSize="60sp"
+        android:autoSizeMinTextSize="1sp"
+        android:autoSizePresetSizes="14sp"
+        android:autoSizeStepGranularity="2sp"
+        android:autoSizeTextType="uniform"
+        android:text="中华人民共和国合同法中华人民共和国合同法123456789"/>
+
+    <TextView
+        android:layout_width="105dp"
+        android:layout_height="70dp"
+        android:text="a b c"
+        android:textSize="12sp"
+        android:autoSizeMaxTextSize="60sp"
+        android:autoSizeTextType="uniform" />
+
+</LinearLayout>

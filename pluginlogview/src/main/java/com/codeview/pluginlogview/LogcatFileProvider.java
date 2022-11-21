@@ -1,4 +1,4 @@
-package com.kuaidao.loggview;
+package com.codeview.pluginlogview;
 
 
 import androidx.core.content.FileProvider;

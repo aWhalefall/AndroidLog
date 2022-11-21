@@ -1,4 +1,4 @@
-package com.kuaidao.loggview;
+package com.codeview.pluginlogview;
 
 import static android.os.Build.VERSION_CODES.M;
 

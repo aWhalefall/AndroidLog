@@ -1,0 +1,143 @@
+
+
+
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+
+    ext {
+        VERSION_CODE = 1
+        VERSION_NAME = "1.0.0"
+        GROUP = "com.codeview.miniparty"
+        POM_NAME = "crashlytics-sdk"
+        ARTIFACT_ID = "crashlytics"
+        POM_PACKAGING = "aar"
+        POM_DESCRIPTION = "descript"
+
+        POM_URL = ""
+        POM_SCM_URL = ""
+        POM_SCM_CONNECTION = ""
+        POM_SCM_DEV_CONNECTION = ""
+        POM_LICENCE_NAME = ""
+        POM_LICENCE_URL = ""
+        POM_LICENCE_DIST = "repo"
+        POM_DEVELOPER_ID = "codeview"
+        POM_DEVELOPER_NAME = "kuaidao"
+
+        NEXUS_USERNAME = "yangweichao"
+        NEXUS_PASSWORD = "Weichao123"
+        RELEASE_REPOSITORY_URL = "http://nexus.dreamreworld.com/nexus/repository/maven-releases-android/"
+        SNAPSHOT_REPOSITORY_URL = "http://nexus.dreamreworld.com/nexus/repository/maven-snapshots-android/"
+
+    }
+
+    def isReleaseBuild() {
+        return VERSION_NAME.contains("SNAPSHOT") == false
+    }
+
+    def getReleaseRepositoryUrl() {
+        return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
+                : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    }
+
+    def getSnapshotRepositoryUrl() {
+        return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
+                : "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+
+    def getRepositoryUsername() {
+        return hasProperty('NEXUS_USERNAME') ? NEXUS_USERNAME : ""
+    }
+
+    def getRepositoryPassword() {
+        return hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : ""
+    }
+
+
+    def getVersionName(){
+        return (project.hasProperty('version') && !project.getProperty('version').equals('unspecified'))? project.getProperty('version') : VERSION_NAME
+    }
+
+
+
+    def getRepositoryUrl() {
+        if (isReleaseBuild()) {
+            return getReleaseRepositoryUrl()
+        } else {
+            return getSnapshotRepositoryUrl()
+        }
+    }
+
+    afterEvaluate {
+        publishing {
+            publications {
+                release(MavenPublication) {
+                    artifact sourcesJar
+                    from components.release
+                    groupId = GROUP
+                    artifactId = ARTIFACT_ID
+                    version = getVersionName()
+
+                    pom {
+                        name = POM_NAME
+                        packaging = POM_PACKAGING
+                        description = POM_DESCRIPTION
+                        url = POM_URL
+
+                        licenses {
+                            license {
+                                name = POM_LICENCE_NAME
+                                url = POM_LICENCE_URL
+                                distribution = POM_LICENCE_DIST
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id = POM_DEVELOPER_ID
+                                name = POM_DEVELOPER_NAME
+                            }
+                        }
+
+                        scm {
+                            url = POM_SCM_URL
+                            connection = POM_SCM_CONNECTION
+                            developerConnection = POM_SCM_DEV_CONNECTION
+                        }
+
+                    }
+                }
+            }
+            repositories {
+                maven {
+                    allowInsecureProtocol = true
+                    credentials(PasswordCredentials){
+                        username  getRepositoryUsername()
+                        password  getRepositoryPassword()
+                    }
+                    url  getRepositoryUrl()
+                }
+            }
+
+        }
+
+    }
+
+    task sourcesJar(type: Jar) {
+        if (project.hasProperty("kotlin")) {
+            from android.sourceSets.main.java.getSrcDirs()
+        } else if (project.hasProperty("android")) {
+            from android.sourceSets.main.java.sourceFiles
+        } else {
+            println project
+            from sourceSets.main.allSource
+        }
+        archiveClassifier='sources'
+    }
+
+//这里的需要配置gpg工具，可以不对artifact进行签名
+//    signing {
+//        required { isReleaseBuild() && gradle.taskGraph.hasTask("publish") }
+//        sign configurations.archives
+//    }
+
+

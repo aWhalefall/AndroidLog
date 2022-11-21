@@ -1,14 +1,13 @@
-package com.kuaidao.loggview;
+package com.codeview.pluginlogview;
 
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.SystemClock;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -20,8 +19,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.codeview.pluginlogview.databinding.LogcatViewerActivityLogcatBinding;
 import com.google.android.material.snackbar.Snackbar;
-import com.kuaidao.loggview.databinding.LogcatViewerActivityLogcatBinding;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +42,14 @@ public class LogcatActivity extends AppCompatActivity implements Toolbar.OnMenuI
         start(context, Collections.emptyList());
     }
 
+    public static void launchActivity(Activity activity) {
+        activity.startActivity(new Intent(activity, LogcatActivity.class));
+    }
+
+    public static void clear() {
+
+    }
+
     public static void start(Context context, List<Pattern> excludeList) {
         ArrayList<String> list = new ArrayList<>();
         for (Pattern pattern : excludeList) {
@@ -59,10 +66,15 @@ public class LogcatActivity extends AppCompatActivity implements Toolbar.OnMenuI
 
     private LogcatViewerActivityLogcatBinding mBinding;
 
-    private final LogcatAdapter mAdapter = new LogcatAdapter();
+    private final LogcatAdapter mAdapter = new LogcatAdapter(this);
     private boolean mReading = false;
     private final List<Pattern> mExcludeList = new ArrayList<>();
     private ActivityResultLauncher<Void> mLauncher;
+
+    /**
+     * 过滤Tag
+     */
+    private String mFilterTag;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -88,7 +100,9 @@ public class LogcatActivity extends AppCompatActivity implements Toolbar.OnMenuI
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String filter = getResources().getStringArray(R.array.logcat_viewer_logcat_spinner)[position];
+                mFilterTag = filter.substring(0,1);
                 mAdapter.getFilter().filter(filter);
+
             }
 
             @Override
@@ -107,6 +121,8 @@ public class LogcatActivity extends AppCompatActivity implements Toolbar.OnMenuI
                 finish();
             }
         });
+
+        mBinding.fraClear.setOnClickListener(v -> mAdapter.clear());
     }
 
     @Override
@@ -159,7 +175,13 @@ public class LogcatActivity extends AppCompatActivity implements Toolbar.OnMenuI
                         try {
                             final LogItem item = new LogItem(line);
                             latestTime = item.time;
-                            mBinding.list.post(() -> mAdapter.append(item));
+                            mBinding.list.post(() -> {
+                                        if (item.isFilter(mFilterTag)) {
+                                            mAdapter.append(item);
+                                        }
+                                    }
+
+                            );
                         } catch (ParseException | NumberFormatException | IllegalStateException e) {
                             e.printStackTrace();
                         }

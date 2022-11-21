@@ -1,6 +1,8 @@
-package com.kuaidao.loggview;
+package com.codeview.pluginlogview;
 
 
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +12,7 @@ import android.widget.Filterable;
 
 import androidx.annotation.Nullable;
 
-import com.kuaidao.loggview.databinding.LogcatViewerItemLogcatBinding;
+import com.codeview.pluginlogview.databinding.LogcatViewerItemLogcatBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,11 +21,17 @@ import java.util.Locale;
 public class LogcatAdapter extends BaseAdapter implements Filterable {
 
     private final ArrayList<LogItem> mData;
-    @Nullable private ArrayList<LogItem> mFilteredData = null;
-    @Nullable private String mFilter = null;
+    @Nullable
+    private ArrayList<LogItem> mFilteredData = null;
+    @Nullable
+    public String mFilter = null;
 
-    LogcatAdapter() {
+    private ClipboardManager cbm;
+    private Context context;
+
+    LogcatAdapter(Context context) {
         mData = new ArrayList<>();
+        this.context = context;
     }
 
     void append(LogItem item) {
@@ -78,7 +86,15 @@ public class LogcatAdapter extends BaseAdapter implements Filterable {
         } else {
             holder = (Holder) convertView.getTag();
         }
-        holder.parse(getItem(position));
+        LogItem item = getItem(position);
+        holder.parse(item);
+        convertView.setOnLongClickListener(v -> {
+            if(cbm==null){
+                cbm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            }
+            cbm.setText(item.content);
+            return false;
+        });
         return convertView;
     }
 
@@ -135,7 +151,7 @@ public class LogcatAdapter extends BaseAdapter implements Filterable {
         }
 
         void parse(LogItem data) {
-            mBinding.time.setText(String.format(Locale.getDefault(),"%s %d-%d/%s",
+            mBinding.time.setText(String.format(Locale.getDefault(), "%s %d-%d/%s",
                     new SimpleDateFormat("MM-dd hh:mm:ss.SSS", Locale.getDefault())
                             .format(data.time), data.processId, data.threadId, data.tag));
             mBinding.content.setText(data.content);
