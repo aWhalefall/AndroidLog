@@ -6,27 +6,27 @@
 
     ext {
         VERSION_CODE = 1
-        VERSION_NAME = "1.0.3"
+        VERSION_NAME = "1.0.0-SNAPSHOT"
         GROUP = "io.github.awhalefall"
         POM_NAME = "crashlytics-sdk"
         ARTIFACT_ID = "crashlytics"
         POM_PACKAGING = "aar"
         POM_DESCRIPTION = "descript"
 
-        POM_URL = ""
+        POM_URL = "https://github.com/aWhalefall/"
         POM_SCM_URL = ""
         POM_SCM_CONNECTION = ""
         POM_SCM_DEV_CONNECTION = ""
-        POM_LICENCE_NAME = ""
-        POM_LICENCE_URL = ""
+        POM_LICENCE_NAME = "The Apache Software License, Version 2.0"
+        POM_LICENCE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
         POM_LICENCE_DIST = "repo"
-        POM_DEVELOPER_ID = "codeview"
-        POM_DEVELOPER_NAME = "kuaidao"
+        POM_DEVELOPER_ID = "yangweichao"
+        POM_DEVELOPER_NAME = "yangweichao"
 
         NEXUS_USERNAME = "yangweichao"
         NEXUS_PASSWORD = "6EK!tGN5ZK5\$Du+"
-        RELEASE_REPOSITORY_URL = "https://s01.oss.sonatype.org/content/repositories/releases/"
-        SNAPSHOT_REPOSITORY_URL ="https://s01.oss.sonatype.org/content/groups/staging/"
+        RELEASE_REPOSITORY_URL = "https://s01.oss.sonatype.org/content/groups/staging/"
+        SNAPSHOT_REPOSITORY_URL ="https://s01.oss.sonatype.org/content/repositories/snapshots/"
     }
 
     def isReleaseBuild() {
@@ -69,13 +69,13 @@
     afterEvaluate {
         publishing {
             publications {
-                release(MavenPublication) {
+                maven(MavenPublication) {
+                    artifact bundleReleaseAar
                     artifact sourcesJar
-                    from components.release
                     groupId = GROUP
                     artifactId = ARTIFACT_ID
                     version = getVersionName()
-                    pom {
+                    pom.with{
                         name = POM_NAME
                         packaging = POM_PACKAGING
                         description = POM_DESCRIPTION
@@ -113,7 +113,6 @@
                         password  getRepositoryPassword()
                     }
                     url  getRepositoryUrl()
-//                    url layout.buildDirectory.dir('repos')
                 }
             }
 
@@ -122,21 +121,17 @@
     }
 
     task sourcesJar(type: Jar) {
-        if (project.hasProperty("kotlin")) {
-            from android.sourceSets.main.java.getSrcDirs()
-        } else if (project.hasProperty("android")) {
-            from android.sourceSets.main.java.sourceFiles
-        } else {
-            println project
-            from sourceSets.main.allSource
-        }
+        from android.sourceSets.main.java.getSrcDirs()
         archiveClassifier='sources'
     }
 
+
+
+
 //这里的需要配置gpg工具，可以不对artifact进行签名
-//    signing {
-//        required { isReleaseBuild() && gradle.taskGraph.hasTask("publish") }
-//        sign  publishing.publications
-//    }
+    signing {
+        required { isReleaseBuild() && gradle.taskGraph.hasTask("publish") }
+        sign  publishing.publications
+    }
 
 
